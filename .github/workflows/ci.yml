@@ -16,4 +16,4 @@ jobs:
         ACCESS_TOKEN: ${{ secrets.CI }}
         BRANCH: gh-pages
         FOLDER: dist
-        BUILD_SCRIPT: npm install && npm run build && echo blog.jaijia.top > CNAME
+        BUILD_SCRIPT: npm install && npm run build && echo blog.jaijia.top > dist/CNAME
