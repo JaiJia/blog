@@ -16,7 +16,10 @@
             <a-breadcrumb style="margin: 16px 0">
                 <a-breadcrumb-item>Transition</a-breadcrumb-item>
             </a-breadcrumb>
-            <div :style="{ background: '#fff', padding: '24px', minHeight: '70vh' }">This is my blog site.</div>
+            <div v-for="blog in blogList" :key="blog.id"
+                 :style="{ background: '#fff', padding: '24px', minHeight: '70vh' }">
+                <markdown-it-vue class="md-body" :content="blog.body"/>
+            </div>
         </a-layout-content>
         <a-layout-footer style="text-align: center">
             Ant Design ©2019
@@ -32,8 +35,24 @@
 </style>
 
 <script>
+    import MarkdownItVue from 'markdown-it-vue';
+    import 'markdown-it-vue/dist/markdown-it-vue.css';
     export default {
-        name: "HomePage"
+        name: "HomePage",
+        components: {
+            MarkdownItVue
+        },
+        data() {
+            return {
+                blogList: [],
+            }
+        },
+        created() {
+            this.axios.get('https://api.github.com/repos/jaijia/blog/issues').then(rep => {
+                this.blogList = rep.data;
+            });
+        },
+        methods: {}
     }
 </script>
 
