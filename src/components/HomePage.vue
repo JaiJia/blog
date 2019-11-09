@@ -1,140 +1,137 @@
 <template>
     <a-layout id="home-page" class="layout home-page">
-        <a-layout-header class="header">
-            <div class="logo">
-                <img src="../assets/logo.png" alt="Logo" width="30">
-            </div>
-            <a-menu theme="dark" mode="horizontal" style="line-height: 64px;">
-                <a-menu-item key="1">Home</a-menu-item>
-            </a-menu>
-        </a-layout-header>
-        <aside class="aside">
-            <img src="../assets/logo.png" alt="Profile Photo" width="120">
-            <h3>Jaco</h3>
-            <p>NM$L 🍻</p>
-        </aside>
-        <a-layout-content class="content-wrap">
-            <section class="blog-list">
-                <div v-for="blog in blogList" :key="blog.id">
-                    <h2 class="blog-title">{{blog.title}}</h2>
-                    <markdown-it-vue class="md-body blog-body" :content="blog.abstract"/>
-                    <div class="blog-info">
-                        <span class="blog-info__time">{{blog.created_at | sliceStr(10)}}</span>
-                        <a class="blog-info__label"
-                           :style="{ backgroundColor: '#' + label.color}"
-                              v-for="label in blog.labels" :key="label.id">{{label.name}}</a>
-                    </div>
+        <a-spin class="loading" v-if="isLoading" size="large"></a-spin>
+
+        <a-layout v-if="!isLoading">
+            <aside class="aside">
+                <div class="personal-info">
+                    <img src="../assets/logo.png" alt="Profile Photo" width="120">
+                    <h3>Jaco</h3>
+                    <p>NM$L 🍻</p>
                 </div>
-            </section>
-        </a-layout-content>
-        <a-layout-footer style="text-align: center">
-            Ant Design ©2019
-        </a-layout-footer>
+                <div v-if="currentLabelObj.name">
+                    <a-button class="blog-info__label" type="danger" @click="filterByLabel()"
+                              :style="{ backgroundColor: '#' + currentLabelObj.color}">
+                        {{currentLabelObj.name}}<a-icon type="close"></a-icon>
+                    </a-button>
+                </div>
+            </aside>
+            <a-layout-content class="content-wrap">
+                <section class="blog-list">
+                    <div v-for="blog in blogList" :key="blog.id">
+                        <h2 class="blog-title" @click="linkToDetail(blog)">{{blog.title}}</h2>
+                        <markdown-it-vue class="md-body blog-body" :content="blog.abstract"/>
+                        <div class="blog-info">
+                            <span class="blog-info__time">{{blog.created_at | sliceStr(10)}}</span>
+                            <a class="blog-info__label" v-for="label in blog.labels" :key="label.id"
+                               :style="{ backgroundColor: '#' + label.color}"
+                               @click="filterByLabel(label)">{{label.name}}</a>
+                        </div>
+                    </div>
+                </section>
+                <a-pagination v-model="currentPage" @change="changeList" :total="totalBlogNumber"
+                              :showTotal="total => `Total ${total} items`" style="margin-top: 20px;"></a-pagination>
+            </a-layout-content>
+        </a-layout>
     </a-layout>
 </template>
 
 <script>
     import MarkdownItVue from 'markdown-it-vue';
     import 'markdown-it-vue/dist/markdown-it-vue.css';
+
     export default {
-        name: "HomePage",
+        name: 'HomePage',
         components: {
             MarkdownItVue
         },
         data() {
             return {
+                isLoading: false,
+                originBlogList: [],
                 blogList: [],
+                currentLabelObj: {},
+                allLabels: [],
+                currentPage: 1,
+                totalBlogNumber: 0,
             }
         },
         created() {
-            this.axios.get('https://api.github.com/repos/jaijia/blog/issues').then(rep => {
-                this.blogList = rep.data.map(blogItem => {
-                    const blogAbstract = blogItem.body.split('\n').filter(item => {
-                        return item !== '';
-                    }).slice(0, 10);
-                    return Object.assign({
-                        abstract: blogAbstract.join('\n'),
-                    }, blogItem);
-                });
-            });
+            this.loadData();
         },
         filters: {
             sliceStr(str, len) {
                 return str.slice(0, len);
             }
         },
-        methods: {}
+        methods: {
+            loadData() {
+                this.isLoading = true;
+                this.axios.get('https://api.github.com/repos/jaijia/blog/issues', {
+                    headers: {
+                        'Authorization': 'token ' + window.authArr.join(''),
+                    },
+                }).then(rep => {
+                    let tempLabels = [];
+                    this.originBlogList = rep.data.map(blogItem => {
+                        const blogAbstract = blogItem.body.split('\n').filter(item => {
+                            return item !== '';
+                        }).slice(0, 10);
+                        tempLabels = tempLabels.concat(blogItem.labels);
+                        return Object.assign({
+                            abstract: blogAbstract.join('\n'),
+                        }, blogItem);
+                    });
+                    this.allLabels = [...new Set(tempLabels)];
+                    this.blogList = this.originBlogList.slice(this.currentPage, 10);
+                    this.totalBlogNumber = this.originBlogList.length;
+                }).finally(() => {
+                    this.isLoading = false;
+                });
+            },
+            changeList(page) {
+                const startIndex = page > 1 ? (page - 1) * 10 - 1 : 0;
+                if (this.currentLabelObj.name) {
+                    this.blogList = this.blogList.slice(startIndex, startIndex + 10);
+                } else {
+                    this.blogList = this.originBlogList.slice(startIndex, startIndex + 10);
+                }
+            },
+            linkToDetail(blog) {
+                this.$router.push({
+                    name: 'BlogDetail',
+                    params: {
+                        number: blog.number,
+                        blogDetail: blog
+                    }
+                })
+            },
+            filterByLabel(label = {}) {
+                if (label.name === this.currentLabelObj.name) {
+                    return;
+                }
+                this.currentLabelObj = label;
+                this.currentPage = 1;
+                if (!label.name) {
+                    this.changeList(this.currentPage);
+                    this.totalBlogNumber = this.originBlogList.length;
+                } else {
+                    this.isLoading = true;
+                    this.axios.get(`https://api.github.com/repos/jaijia/blog/issues?labels=${label.name}`).then(rep => {
+                        this.blogList = rep.data.map(blogItem => {
+                            const blogAbstract = blogItem.body.split('\n').filter(item => {
+                                return item !== '';
+                            }).slice(0, 10);
+                            return Object.assign({
+                                abstract: blogAbstract.join('\n'),
+                            }, blogItem);
+                        });
+                        this.totalBlogNumber = this.blogList.length;
+                    }).finally(() => {
+                        this.isLoading = false;
+                    });
+                }
+            },
+        }
     }
 </script>
-
-<style>
-    .header {
-        display: flex;
-        align-items: center;
-    }
-
-    .logo {
-        margin: 5vw;
-    }
-
-    .aside {
-        position: absolute;
-        left: 100px;
-        top: 200px;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-    }
-
-    .content-wrap {
-        max-width: 1200px;
-        margin: 0 auto;
-    }
-
-    .blog-list {
-        min-height: 80vh;
-        padding: 20px;
-        background-color: #fff;
-    }
-
-    .blog-title {
-        font-size: 24px;
-        line-height: 2;
-    }
-
-    .blog-body {
-        padding: 10px;
-        background-color: #f5f5f5;
-    }
-
-    .blog-info {
-        height: 40px;
-        line-height: 40px;
-    }
-
-    .blog-info__time {
-        color: #666;
-    }
-
-    .blog-info__label {
-        display: inline-block;
-        padding: 0 8px;
-        margin: 0 10px;
-        height: 20px;
-        line-height: 20px;
-        color: #000;
-        font-weight: bold;
-    }
-
-    @media only screen and (max-width: 500px) {
-        .aside {
-            display: none;
-        }
-
-        .content-wrap {
-            padding: 0;
-        }
-    }
-
-</style>
