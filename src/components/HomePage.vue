@@ -57,6 +57,7 @@
             }
         },
         created() {
+            this.currentPage = 1;
             this.loadData();
         },
         filters: {
@@ -83,7 +84,7 @@
                         }, blogItem);
                     });
                     this.allLabels = [...new Set(tempLabels)];
-                    this.blogList = this.originBlogList.slice(this.currentPage, 10);
+                    this.changeList(this.currentPage);
                     this.totalBlogNumber = this.originBlogList.length;
                 }).finally(() => {
                     this.isLoading = false;
