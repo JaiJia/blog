@@ -1,0 +1,21 @@
+{
+    "extends": ["plugin:vue/base"],
+    "parserOptions": {
+        "parser": "babel-eslint",
+        "ecmaVersion": 2017,
+        "sourceType": "module"
+    },
+    "env": {
+        "es6": true,
+        "browser": true
+    },
+    "rules": {
+        "semi": ["off"],
+        "quotes": ["warn", "single"],
+        "no-unused-vars": ["warn"],
+        "no-console": ["off"]
+    },
+    "globals": {
+        "module": true
+    },
+}

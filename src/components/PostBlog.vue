@@ -17,19 +17,35 @@
 <script>
     import Vue from 'vue';
     import mavonEditor from 'mavon-editor';
+    import api from '../services/api';
     import 'mavon-editor/dist/css/index.css';
 
     Vue.use(mavonEditor);
 
     export default {
         name: 'PostBlog',
+        props: ['number', 'blogDetail'],
         data() {
             return {
                 formLayout: 'horizontal',
                 form: this.$form.createForm(this, { name: 'coordinated' }),
                 blogBody: '',
                 isLoading: false,
+                isEdit: false,
             };
+        },
+        created() {
+            if (this.blogDetail) {
+                this.isEdit = true;
+                this.form.getFieldDecorator('title', {initialValue: this.blogDetail.title});
+                this.blogBody = this.blogDetail.body;
+            } else if (this.number) {
+                this.isEdit = true;
+                api.getBlogDetail(this.number).then(data => {
+                    this.form.getFieldDecorator('title', {initialValue: data.title});
+                    this.blogBody = data.body;
+                });
+            }
         },
         methods: {
             postNew(e) {
