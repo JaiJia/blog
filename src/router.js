@@ -26,7 +26,7 @@ const routes = [
     },
     {
         path: '/post/:number',
-        name: 'PostBlog',
+        name: 'UpdateBlog',
         component: PostBlog,
         props: true,
     },

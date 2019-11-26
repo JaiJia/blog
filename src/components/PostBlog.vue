@@ -7,6 +7,9 @@
             <a-form-item label="Body" :label-col="{ span: 4 }" :wrapper-col="{ span: 20 }">
                 <mavon-editor class="edit-body" v-model="blogBody"></mavon-editor>
             </a-form-item>
+            <a-form-item label="Labels" :label-col="{ span: 4 }" :wrapper-col="{ span: 20 }">
+                <a-input v-decorator="['labels', { rules: [{ required: true, message: 'Please input your labels!' }] }]"></a-input>
+            </a-form-item>
             <a-button class="submit-btn" type="primary" html-type="submit" shape="round" size="large" :disabled="isLoading">
                 Submit<a-icon type="man"></a-icon>
             </a-button>
@@ -38,11 +41,13 @@
             if (this.blogDetail) {
                 this.isEdit = true;
                 this.form.getFieldDecorator('title', {initialValue: this.blogDetail.title});
+                this.form.getFieldDecorator('labels', {initialValue: this.blogDetail.labels.map(item => item.name).join(',')});
                 this.blogBody = this.blogDetail.body;
             } else if (this.number) {
                 this.isEdit = true;
                 api.getBlogDetail(this.number).then(data => {
                     this.form.getFieldDecorator('title', {initialValue: data.title});
+                    this.form.getFieldDecorator('labels', {initialValue: data.labels.map(item => item.name).join(',')});
                     this.blogBody = data.body;
                 });
             }
@@ -62,7 +67,8 @@
                             headers: {
                                 'Authorization': 'token ' + window.authArr.join(''),
                             },
-                        }).then(() => {
+                        }).then((rep) => {
+                            api.addLabels(that.isEdit, rep.data.number, values.labels);
                             that.$message.success('Post Successfully!');
                             that.form.resetFields();
                             that.$router.push({

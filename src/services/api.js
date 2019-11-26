@@ -39,5 +39,21 @@ export default {
                 });
             }
         });
+    },
+    addLabels(isEdit, number, labels) {
+        const method = isEdit ? 'put' : 'post';
+        return new Promise((resolve,reject) => {
+            axios[method](`${apiPath.blogList}/${number}/labels`, {
+                labels: Array.isArray(labels) ? labels : labels.split(',')
+            }, {
+                headers: {
+                    'Authorization': 'token ' + window.authArr.join(''),
+                },
+            }).then(rep => {
+                console.log('Replace Successfully!');
+            }, err => {
+                console.error(`Error: ${err.response.data.message}`);
+            });
+        });
     }
 };
