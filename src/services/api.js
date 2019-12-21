@@ -1,13 +1,17 @@
 import axios from 'axios';
 
-const apiPath = {
+const apiPath = { // Github Api
     blogList: 'https://api.github.com/repos/jaijia/blog/issues',
 };
 
+const fcApiPath = { // Function Compute
+    blogList: 'https://blog-node.jaijia.top/api/issues',
+};
+
 export default {
-    getBlogList(state = open) {
+    getBlogList(state = 'open') {
         return new Promise((resolve, reject) => {
-            axios.get(`${apiPath.blogList}?state=${state}`, {
+            axios.get(`${fcApiPath.blogList}?state=${state}`, {
                 headers: {
                     'Authorization': 'token ' + window.authArr.join(''),
                 },

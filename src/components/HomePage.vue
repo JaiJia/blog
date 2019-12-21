@@ -39,6 +39,7 @@
 <script>
     import MarkdownItVue from 'markdown-it-vue';
     import 'markdown-it-vue/dist/markdown-it-vue.css';
+    import api from '../services/api';
 
     export default {
         name: 'HomePage',
@@ -68,13 +69,9 @@
         methods: {
             loadData() {
                 this.isLoading = true;
-                this.axios.get('https://api.github.com/repos/jaijia/blog/issues', {
-                    headers: {
-                        'Authorization': 'token ' + window.authArr.join(''),
-                    },
-                }).then(rep => {
+                api.getBlogList().then(data => {
                     let tempLabels = [];
-                    this.originBlogList = rep.data.map(blogItem => {
+                    this.originBlogList = data.map(blogItem => {
                         const blogAbstract = blogItem.body.split('\n').slice(0, 12);
                         tempLabels = tempLabels.concat(blogItem.labels);
                         return Object.assign({
