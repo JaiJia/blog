@@ -44,7 +44,7 @@ export default {
         const method = isEdit ? 'put' : 'post';
         return new Promise((resolve,reject) => {
             axios[method](`${apiPath.blogList}/${number}/labels`, {
-                labels: Array.isArray(labels) ? labels : labels.split(',')
+                labels: Array.isArray(labels) ? labels : labels.split(',').split('，')
             }, {
                 headers: {
                     'Authorization': 'token ' + window.authArr.join(''),

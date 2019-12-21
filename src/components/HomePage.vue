@@ -75,9 +75,7 @@
                 }).then(rep => {
                     let tempLabels = [];
                     this.originBlogList = rep.data.map(blogItem => {
-                        const blogAbstract = blogItem.body.split('\n').filter(item => {
-                            return item !== '';
-                        }).slice(0, 10);
+                        const blogAbstract = blogItem.body.split('\n').slice(0, 12);
                         tempLabels = tempLabels.concat(blogItem.labels);
                         return Object.assign({
                             abstract: blogAbstract.join('\n'),

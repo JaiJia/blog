@@ -10,10 +10,32 @@ jobs:
     - name: Checkout
       uses: actions/checkout@master
 
-    - name: Build and Deploy
-      uses: JamesIves/github-pages-deploy-action@master
-      env:
-        ACCESS_TOKEN: ${{ secrets.CI }}
-        BRANCH: gh-pages
-        FOLDER: dist
-        BUILD_SCRIPT: npm --registry https://registry.npm.taobao.org install && npm run build && echo blog.jaijia.top > dist/CNAME && touch dist/.nojekyll
+    # 配置github-pages
+    # - name: Build and Deploy
+    #   uses: JamesIves/github-pages-deploy-action@master
+    #   env:
+    #     ACCESS_TOKEN: ${{ secrets.CI }}
+    #     BRANCH: gh-pages
+    #     FOLDER: dist
+    #     BUILD_SCRIPT: npm --registry https://registry.npm.taobao.org install && npm run build && echo blog.jaijia.top > dist/CNAME && touch dist/.nojekyll
+
+    # npm install
+    - name: npm install
+      run: npm --registry https://registry.npm.taobao.org install
+    - name: build
+      run: npm run build
+
+    # 设置阿里云OSS的 id/secret，存储到 github 的 secrets 中
+    - name: setup aliyun oss
+      uses: manyuanrong/setup-ossutil@master
+      with:
+        endpoint: oss-cn-shanghai.aliyuncs.com
+        access-key-id: ${{ secrets.OSS_KEY_ID }}
+        access-key-secret: ${{ secrets.OSS_KEY_SECRET }}
+    # - name: 删除冗余文件
+    #   run: ossutil rm oss://jaijia-blog/assets -rf
+    #   if: github.event_name == 'schedule'
+    - name: 复制文件到阿里云OSS
+      run: ossutil cp -rf dist oss://jaijia-blog/
+    # - name: 设置永久缓存
+    #   run: ossutil set-meta oss://jaijia-blog/assets cache-control:"max-age=31536000" --update -rf
