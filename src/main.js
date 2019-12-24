@@ -6,7 +6,8 @@ import VueAxios from 'vue-axios';
 import router from './router';
 
 import 'ant-design-vue/dist/antd.css';
-import './style.css';
+import './style.scss';
+import './style/animation.scss';
 
 Vue.config.productionTip = false;
 

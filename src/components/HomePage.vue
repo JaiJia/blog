@@ -18,8 +18,13 @@
             </aside>
             <a-layout-content class="content-wrap">
                 <section class="blog-list">
-                    <div v-for="blog in blogList" :key="blog.id">
-                        <h2 class="blog-title" @click="linkToDetail(blog)">{{blog.title}}</h2>
+                    <div class="blog-item" v-for="blog in blogList" :key="blog.id">
+                        <h2 class="blog-title mouse-cursor-gradient-tracking" @click="linkToDetail(blog)">{{blog.title}}
+                            <div class="ripple-loader">
+                                <div></div>
+                                <div></div>
+                            </div>
+                        </h2>
                         <markdown-it-vue class="md-body blog-body" :content="blog.abstract"/>
                         <div class="blog-info">
                             <span class="blog-info__time">{{blog.created_at | sliceStr(10)}}</span>
@@ -40,6 +45,7 @@
     import MarkdownItVue from 'markdown-it-vue';
     import 'markdown-it-vue/dist/markdown-it-vue.css';
     import api from '../services/api';
+    import '../services/animation';
 
     export default {
         name: 'HomePage',
